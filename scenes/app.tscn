@@ -41,6 +41,20 @@ text = "Set Plugin Directory
 "
 text_overrun_behavior = 3
 
+[node name="DirInputBox" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="DirPathEdit" type="LineEdit" parent="CenterContainer/MarginContainer/VBoxContainer/DirInputBox"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Enter path to plugin dir"
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/DirInputBox"]
+layout_mode = 2
+text = "Enter"
+
 [node name="Spacer1" type="Control" parent="CenterContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -155,4 +169,6 @@ layout_mode = 2
 text = "Export Weapon"
 
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/PluginDirButton" to="." method="_on_plugin_dir_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/DirInputBox/Button" to="." method="_on_enter_input_dir_pressed"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/ActionBehaviorTypeBox/EditActionBehaviorButton" to="." method="_on_edit_action_behavior_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/TextureBehaviorTypeBox2/EditTextureBehaviorButton" to="." method="_on_edit_texture_behavior_button_pressed"]

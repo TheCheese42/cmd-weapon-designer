@@ -1,0 +1,78 @@
+[gd_scene load_steps=3 format=3 uid="uid://bd5dwqj4y53ly"]
+
+[ext_resource type="Script" path="res://scenes/behavior_edit.gd" id="1_qooax"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_x25ug"]
+font_size = 32
+
+[node name="BehaviorEdit" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_qooax")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -223.0
+offset_top = -289.0
+offset_right = 223.0
+offset_bottom = 302.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.270222, 0.270222, 0.270222, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect/CenterContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="ColorRect/CenterContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Header" type="Label" parent="ColorRect/CenterContainer/MarginContainer/VBox"]
+custom_minimum_size = Vector2(366, 45)
+layout_mode = 2
+text = "Behavior Editor"
+label_settings = SubResource("LabelSettings_x25ug")
+horizontal_alignment = 1
+
+[node name="TypeLabel" type="Label" parent="ColorRect/CenterContainer/MarginContainer/VBox"]
+layout_mode = 2
+text = "Type:"
+horizontal_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect/CenterContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ColorRect/CenterContainer/MarginContainer/VBox/MarginContainer"]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+
+[node name="ContentBox" type="VBoxContainer" parent="ColorRect/CenterContainer/MarginContainer/VBox/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="DoneButton" type="Button" parent="ColorRect/CenterContainer/MarginContainer/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Done"

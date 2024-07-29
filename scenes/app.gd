@@ -28,6 +28,8 @@ var texture_behaviors: Dictionary
 #   ]
 # ]
 
+var behavior_edit_scene: PackedScene = load("res://scenes/behavior_edit.tscn")
+
 
 func _init() -> void:
 	var save: Resource = load("user://save.tres")
@@ -94,7 +96,7 @@ func _init_plugin_dir() -> void:
 	var categories_ := FileAccess.open(plugin_dir.rstrip("/") + "/categories.json", FileAccess.WRITE)
 	categories_.store_string('["gun", "rifle", "shotgun", "melee", "bow", "special"]\n')
 	var gun_behavior := FileAccess.open(plugin_dir.rstrip("/") + "/action_behaviors/gun.json", FileAccess.WRITE)
-	gun_behavior.store_string('{\n  "projectile_texture": "path",\n  "damage": "int",\n  "cooldown": "float",\n  "energy": "int",\n  "crit_rate": "float",\n  "penetration": "int",\n  "speed": "int",\n  "inaccuracy": "int"\n}\n')
+	gun_behavior.store_string('{\n  "projectile_texture": "filepath",\n  "damage": "int",\n  "cooldown": "float",\n  "energy": "int",\n  "crit_rate": "float",\n  "penetration": "int",\n  "speed": "int",\n  "inaccuracy": "int"\n}\n')
 	var regular_behavior := FileAccess.open(plugin_dir.rstrip("/") + "/texture_behaviors/regular.json", FileAccess.WRITE)
 	regular_behavior.store_string('{\n  "idle": {\n    "textures": ["path"],\n    "frame_rate": "int"\n  },\n  "shoot": {\n    "textures": ["path"],\n    "frame_rate": "int"\n  }\n}\n')
 
@@ -137,6 +139,9 @@ func _process(_delta: float) -> void:
 	else:
 		find_child("EditTextureBehaviorButton").disabled = false
 
+	if Input.is_action_just_pressed("enter_plugin_dir"):
+		$CenterContainer/MarginContainer/VBoxContainer/DirInputBox.visible = true
+
 
 func _on_action_type_item_pressed(id: int) -> void:
 	action_type = id
@@ -163,10 +168,18 @@ func _on_edit_action_behavior_button_pressed() -> void:
 	if action_type == null:
 		return
 
+	var scene = behavior_edit_scene.instantiate()
+	scene.init("Action Behavior Edit", action_type_map[action_type], action_behaviors[action_type_map[action_type]])
+	add_child(scene)
+
 
 func _on_edit_texture_behavior_button_pressed() -> void:
 	if texture_type == null:
 		return
+
+	var scene = behavior_edit_scene.instantiate()
+	scene.init("Texture Behavior Edit", texture_type_map[texture_type], texture_behaviors[texture_type_map[texture_type]])
+	add_child(scene)
 
 
 func _on_plugin_dir_button_pressed() -> void:
@@ -177,3 +190,19 @@ func _on_plugin_dir_button_pressed() -> void:
 	dialog.title = "Select a Directory"
 	dialog.show()
 	dialog.dir_selected.connect(_set_plugin_dir)
+
+
+func _on_enter_input_dir_pressed() -> void:
+	var edit: LineEdit = find_child("DirPathEdit")
+	var text = edit.text
+	if text and DirAccess.dir_exists_absolute(text):
+		_set_plugin_dir(text)
+	else:
+		var tween = create_tween()
+		var prev_color = edit.modulate
+		var new_color = prev_color
+		new_color.a = 0.2
+		tween.tween_property(edit, "modulate", new_color, 0.4)
+		await tween.finished
+		tween = create_tween()
+		tween.tween_property(edit, "modulate", prev_color, 0.4)
