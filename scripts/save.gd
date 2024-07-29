@@ -3,4 +3,4 @@ extends Resource
 class_name Save
 
 
-var plugin_dir: String
+@export var plugin_dir: String
