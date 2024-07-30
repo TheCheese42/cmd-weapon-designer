@@ -28,7 +28,11 @@ var texture_behaviors: Dictionary
 #   ]
 # ]
 
+var action_behavior_values: Dictionary = {}
+var texture_behavior_values: Dictionary = {}
+
 var behavior_edit_scene: PackedScene = load("res://scenes/behavior_edit.tscn")
+var confirm_scene: PackedScene = load("res://scenes/confirm.tscn")
 
 
 func _init() -> void:
@@ -94,11 +98,11 @@ func _init_plugin_dir() -> void:
 	var rarities_ := FileAccess.open(plugin_dir.rstrip("/") + "/rarities.json", FileAccess.WRITE)
 	rarities_.store_string('["common", "rare", "epic", "legendary"]\n')
 	var categories_ := FileAccess.open(plugin_dir.rstrip("/") + "/categories.json", FileAccess.WRITE)
-	categories_.store_string('["gun", "rifle", "shotgun", "melee", "bow", "special"]\n')
+	categories_.store_string('["pistols", "rifles", "shotguns", "melees", "bows", "special"]\n')
 	var gun_behavior := FileAccess.open(plugin_dir.rstrip("/") + "/action_behaviors/gun.json", FileAccess.WRITE)
 	gun_behavior.store_string('{\n  "projectile_texture": "filepath",\n  "damage": "int",\n  "cooldown": "float",\n  "energy": "int",\n  "crit_rate": "float",\n  "penetration": "int",\n  "speed": "int",\n  "inaccuracy": "int"\n}\n')
 	var regular_behavior := FileAccess.open(plugin_dir.rstrip("/") + "/texture_behaviors/regular.json", FileAccess.WRITE)
-	regular_behavior.store_string('{\n  "idle": {\n    "textures": ["path"],\n    "frame_rate": "int"\n  },\n  "shoot": {\n    "textures": ["path"],\n    "frame_rate": "int"\n  }\n}\n')
+	regular_behavior.store_string('{\n  "idle": {\n    "textures": "filepaths",\n    "frame_rate": "int"\n  },\n  "shoot": {\n    "textures": "filepaths",\n    "frame_rate": "int"\n  }\n}\n')
 
 
 func _ready() -> void:
@@ -140,7 +144,8 @@ func _process(_delta: float) -> void:
 		find_child("EditTextureBehaviorButton").disabled = false
 
 	if Input.is_action_just_pressed("enter_plugin_dir"):
-		$CenterContainer/MarginContainer/VBoxContainer/DirInputBox.visible = true
+		find_child("DirInputBox").visible = not find_child("DirInputBox").visible
+		find_child("ExportDirInputBox").visible = not find_child("ExportDirInputBox").visible
 
 
 func _on_action_type_item_pressed(id: int) -> void:
@@ -160,7 +165,6 @@ func _on_rarity_item_pressed(id: int) -> void:
 
 func _on_category_item_pressed(id: int) -> void:
 	category = id
-	print(category_map)
 	find_child("CategoryMenu").text = category_map[id]
 
 
@@ -169,7 +173,7 @@ func _on_edit_action_behavior_button_pressed() -> void:
 		return
 
 	var scene = behavior_edit_scene.instantiate()
-	scene.init("Action Behavior Edit", action_type_map[action_type], action_behaviors[action_type_map[action_type]])
+	scene.init("Action Behavior Edit", action_type_map[action_type], action_behaviors[action_type_map[action_type]], action_behavior_values, _action_behavior_editor_done)
 	add_child(scene)
 
 
@@ -178,7 +182,7 @@ func _on_edit_texture_behavior_button_pressed() -> void:
 		return
 
 	var scene = behavior_edit_scene.instantiate()
-	scene.init("Texture Behavior Edit", texture_type_map[texture_type], texture_behaviors[texture_type_map[texture_type]])
+	scene.init("Texture Behavior Edit", texture_type_map[texture_type], texture_behaviors[texture_type_map[texture_type]], texture_behavior_values, _texture_behavior_editor_done)
 	add_child(scene)
 
 
@@ -197,6 +201,118 @@ func _on_enter_input_dir_pressed() -> void:
 	var text = edit.text
 	if text and DirAccess.dir_exists_absolute(text):
 		_set_plugin_dir(text)
+	else:
+		var tween = create_tween()
+		var prev_color = edit.modulate
+		var new_color = prev_color
+		new_color.a = 0.2
+		tween.tween_property(edit, "modulate", new_color, 0.4)
+		await tween.finished
+		tween = create_tween()
+		tween.tween_property(edit, "modulate", prev_color, 0.4)
+
+
+func _action_behavior_editor_done(values: Dictionary) -> void:
+	action_behavior_values = values
+
+
+func _texture_behavior_editor_done(values: Dictionary) -> void:
+	texture_behavior_values = values
+
+
+func _null_in_values(dict: Dictionary):
+	for value in dict.values():
+		if value == null:
+			return true
+		elif typeof(value) == TYPE_DICTIONARY:
+			if _null_in_values(value):
+				return true
+	return false
+
+
+func _on_export_button_pressed() -> void:
+	if not await _validate_export():
+		return
+
+	var dialog := FileDialog.new()
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	dialog.use_native_dialog = true
+	dialog.title = "Save to file"
+	dialog.add_filter("*.json", "JSON file")
+	dialog.show()
+	dialog.file_selected.connect(
+		func(file: String):
+			_export(file)
+	)
+
+
+func _export(file: String) -> void:
+	if not await _validate_export():
+		return
+
+	var json = {}
+	json["name"] = find_child("NameEdit").text
+	json["category"] = category_map[category]
+	json["rarity"] = rarity_map[rarity]
+	json["action_behavior"] = {
+		"type": action_type_map[action_type],
+		"params": action_behavior_values,
+	}
+	json["texture_behavior"] = {
+		"type": texture_type_map[texture_type],
+		"params": texture_behavior_values,
+	}
+
+	var fp = FileAccess.open(file, FileAccess.WRITE)
+	fp.store_string(JSON.stringify(json, "  ", false))
+	var scene = confirm_scene.instantiate()
+	scene.init(file.rsplit("/", false, 1)[0])
+	add_child(scene)
+
+
+func _validate_export() -> bool:
+
+	var blink = func(item):
+		var tween = create_tween()
+		var prev_color = item.modulate
+		var new_color = prev_color
+		new_color.a = 0.2
+		tween.tween_property(item, "modulate", new_color, 0.4)
+		await tween.finished
+		tween = create_tween()
+		tween.tween_property(item, "modulate", prev_color, 0.4)
+
+	var able := true
+	if not find_child("NameEdit").text:
+		able = false
+		await blink.call(find_child("NameEdit"))
+	if category == null:
+		able = false
+		await blink.call(find_child("CategoryMenu"))
+	if rarity == null:
+		able = false
+		await blink.call(find_child("RarityMenu"))
+	if action_type == null:
+		able = false
+		await blink.call(find_child("ActionBehaviorTypeMenu"))
+	if texture_type == null:
+		able = false
+		await blink.call(find_child("TextureBehaviorTypeMenu"))
+	if not action_behavior_values or _null_in_values(action_behavior_values):
+		able = false
+		await blink.call(find_child("EditActionBehaviorButton"))
+	if not texture_behavior_values or _null_in_values(texture_behavior_values):
+		able = false
+		await blink.call(find_child("EditTextureBehaviorButton"))
+	return able
+
+
+func _on_export_dir_edit_enter_pressed() -> void:
+	var edit: LineEdit = find_child("ExportDirPathEdit")
+	var text = edit.text
+	if text:
+		_export(text)
 	else:
 		var tween = create_tween()
 		var prev_color = edit.modulate

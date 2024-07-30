@@ -27,7 +27,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 
 [node name="Header" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -65,7 +65,7 @@ layout_mode = 2
 layout_mode = 2
 text = "Weapon Name: "
 
-[node name="LineEdit" type="LineEdit" parent="CenterContainer/MarginContainer/VBoxContainer/NameBox"]
+[node name="NameEdit" type="LineEdit" parent="CenterContainer/MarginContainer/VBoxContainer/NameBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Enter Weapon Name"
@@ -160,6 +160,9 @@ layout_mode = 2
 layout_mode = 2
 text = "Edit"
 
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
 [node name="Spacer6" type="Control" parent="CenterContainer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
@@ -168,7 +171,23 @@ layout_mode = 2
 layout_mode = 2
 text = "Export Weapon"
 
+[node name="ExportDirInputBox" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="ExportDirPathEdit" type="LineEdit" parent="CenterContainer/MarginContainer/VBoxContainer/ExportDirInputBox"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Enter path to plugin dir"
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/ExportDirInputBox"]
+layout_mode = 2
+text = "Enter"
+
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/PluginDirButton" to="." method="_on_plugin_dir_button_pressed"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/DirInputBox/Button" to="." method="_on_enter_input_dir_pressed"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/ActionBehaviorTypeBox/EditActionBehaviorButton" to="." method="_on_edit_action_behavior_button_pressed"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/TextureBehaviorTypeBox2/EditTextureBehaviorButton" to="." method="_on_edit_texture_behavior_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/ExportButton" to="." method="_on_export_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/ExportDirInputBox/Button" to="." method="_on_export_dir_edit_enter_pressed"]
